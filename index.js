@@ -3,7 +3,6 @@ const cors = require('cors');
 const { CohereClient } = require('cohere-ai'); // Import CohereClient
 const path = require('path');
 const app = express();
-const PORT = 3000;
 require('dotenv').config();
 const COHERE_API_KEY = process.env.COHERE_API_KEY;
 const ZOTERO_API_KEY = process.env.ZOTERO_API_KEY;
