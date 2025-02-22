@@ -385,6 +385,9 @@
   </style>
 
   <script>
+    const cohere = new CohereClient({
+  token: COHERE_API_KEY,
+});
     document.getElementById('hamburger').addEventListener('click', () => {
   const navLinks = document.getElementById('nav-links');
   navLinks.classList.toggle('active');
