@@ -2,7 +2,7 @@
   "name": "essay-tool",
   "version": "1.0.0",
   "description": "Essay Writing Assistant",
-  "main": "server/index.js",
+  "main": "index.js",
   "scripts": {
     "start": "node server/index.js",
     "dev": "nodemon server/index.js"
