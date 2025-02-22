@@ -385,56 +385,10 @@
   </style>
 
   <script>
-    const cohere = new CohereClient({
-  token: COHERE_API_KEY,
-});
-    document.getElementById('hamburger').addEventListener('click', () => {
-  const navLinks = document.getElementById('nav-links');
-  navLinks.classList.toggle('active');
-});
-  async function generateEssay() {
-    const input = document.querySelector('#generator input').value;
-    const messages = document.querySelector('#generator .messages');
+  // Replace all instances of http://localhost:3000 with https://essaychat.onrender.com
+const backendUrl = 'https://essaychat.onrender.com';
 
-    if (!input.trim()) {
-      alert('Please enter a topic!');
-      return;
-    }
-
-    const userMsg = document.createElement('div');
-    userMsg.className = 'message user';
-    userMsg.textContent = input;
-    messages.appendChild(userMsg);
-
-    document.querySelector('#generator input').value = '';
-
-    const loadingMsg = document.createElement('div');
-    loadingMsg.className = 'message bot typing';
-    loadingMsg.textContent = 'Crafting your essay...';
-    messages.appendChild(loadingMsg);
-
-    try {
-      const response = await fetch('http://localhost:3000/generate-essay', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: input }),
-      });
-
-      const data = await response.json();
-
-      loadingMsg.className = 'message bot';
-      loadingMsg.textContent = data.essay || 'Failed to generate essay.';
-    } catch (error) {
-      console.error('Error:', error);
-      loadingMsg.textContent = 'An error occurred. Please try again.';
-    }
-
-    messages.scrollTop = messages.scrollHeight;
-  }
-
-  let generatedEssay = ''; // Store the generated essay
-
-// Function to generate an essay
+// Example: Update the generateEssay function
 async function generateEssay() {
   const input = document.querySelector('#generator input').value;
   const messages = document.querySelector('#generator .messages');
@@ -461,7 +415,7 @@ async function generateEssay() {
 
   try {
     // Send request to the backend
-    const response = await fetch('http://localhost:3000/generate-essay', {
+    const response = await fetch(`${backendUrl}/generate-essay`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: input }),
@@ -469,12 +423,9 @@ async function generateEssay() {
 
     const data = await response.json();
 
-    // Store the generated essay
-    generatedEssay = data.essay;
-
     // Replace loading message with the generated essay
     loadingMsg.className = 'message bot';
-    loadingMsg.textContent = generatedEssay || 'Failed to generate essay.';
+    loadingMsg.textContent = data.essay || 'Failed to generate essay.';
   } catch (error) {
     console.error('Error:', error);
     loadingMsg.textContent = 'An error occurred. Please try again.';
@@ -484,9 +435,10 @@ async function generateEssay() {
   messages.scrollTop = messages.scrollHeight;
 }
 
-// Function to humanize text
+// Example: Update the humanizeText function
 async function humanizeText() {
   const messages = document.querySelector('#humanizer .messages');
+  const generatedEssay = document.querySelector('#generator .messages .bot:last-child').textContent;
 
   if (!generatedEssay) {
     alert('Please generate an essay first!');
@@ -501,7 +453,7 @@ async function humanizeText() {
 
   try {
     // Send request to the backend
-    const response = await fetch('http://localhost:3000/humanize', {
+    const response = await fetch(`${backendUrl}/humanize`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: generatedEssay }),
@@ -521,82 +473,80 @@ async function humanizeText() {
   messages.scrollTop = messages.scrollHeight;
 }
 
-  async function addReferences() {
-    const messages = document.querySelector('#references .messages');
+// Example: Update the addReferences function
+async function addReferences() {
+  const messages = document.querySelector('#references .messages');
+  const generatedEssay = document.querySelector('#generator .messages .bot:last-child').textContent;
 
-    const loadingMsg = document.createElement('div');
-    loadingMsg.className = 'message bot typing';
-    loadingMsg.textContent = 'Adding references...';
-    messages.appendChild(loadingMsg);
-
-    try {
-      const response = await fetch('http://localhost:3000/add-references', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: 'Sample text to add references' }),
-      });
-
-      const data = await response.json();
-
-      loadingMsg.className = 'message bot';
-      loadingMsg.textContent = data.references || 'Failed to add references.';
-    } catch (error) {
-      console.error('Error:', error);
-      loadingMsg.textContent = 'An error occurred. Please try again.';
-    }
-
-    messages.scrollTop = messages.scrollHeight;
+  if (!generatedEssay) {
+    alert('Please generate an essay first!');
+    return;
   }
 
-  async function gradeEssay() {
-    const messages = document.querySelector('#grader .messages');
-
-    const loadingMsg = document.createElement('div');
-    loadingMsg.className = 'message bot typing';
-    loadingMsg.textContent = 'Grading essay...';
-    messages.appendChild(loadingMsg);
-
-    try {
-      const response = await fetch('http://localhost:3000/grade', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: 'Sample essay to grade' }),
-      });
-
-      const data = await response.json();
-
-      loadingMsg.className = 'message bot';
-      loadingMsg.textContent = data.grade || 'Failed to grade essay.';
-    } catch (error) {
-      console.error('Error:', error);
-      loadingMsg.textContent = 'An error occurred. Please try again.';
-    }
-
-    messages.scrollTop = messages.scrollHeight;
-  }
-
-  async function checkAIDetection() {
-  const messages = document.querySelector('#humanizer .messages');
-  const humanizedText = messages.querySelector('.bot:last-child').textContent;
+  // Add a loading message
+  const loadingMsg = document.createElement('div');
+  loadingMsg.className = 'message bot typing';
+  loadingMsg.textContent = 'Adding academic references...';
+  messages.appendChild(loadingMsg);
 
   try {
-    const response = await fetch('http://localhost:3000/detect-ai', {
+    // Send request to the backend
+    const response = await fetch(`${backendUrl}/add-references`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: humanizedText }),
+      body: JSON.stringify({ text: generatedEssay }),
     });
 
     const data = await response.json();
 
-    if (data.isAI) {
-      alert(`This text is likely AI-generated (confidence: ${data.confidence}%).`);
-    } else {
-      alert('This text passes AI detection!');
-    }
+    // Replace loading message with the references
+    loadingMsg.className = 'message bot';
+    loadingMsg.textContent = data.references.join('\n\n') || 'Failed to add references.';
   } catch (error) {
     console.error('Error:', error);
-    alert('An error occurred while checking AI detection.');
+    loadingMsg.textContent = 'An error occurred. Please try again.';
   }
+
+  // Scroll to the bottom of the messages container
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// Example: Update the gradeEssay function
+async function gradeEssay() {
+  const messages = document.querySelector('#grader .messages');
+  const generatedEssay = document.querySelector('#generator .messages .bot:last-child').textContent;
+
+  if (!generatedEssay) {
+    alert('Please generate an essay first!');
+    return;
+  }
+
+  // Add a loading message
+  const loadingMsg = document.createElement('div');
+  loadingMsg.className = 'message bot typing';
+  loadingMsg.textContent = 'Grading essay...';
+  messages.appendChild(loadingMsg);
+
+  try {
+    // Send request to the backend
+    const response = await fetch(`${backendUrl}/grade`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: generatedEssay }),
+    });
+
+    const data = await response.json();
+
+    // Replace loading message with the grade
+    loadingMsg.className = 'message bot';
+    loadingMsg.textContent = data.grade || 'Failed to grade essay.';
+  } catch (error) {
+    console.error('Error:', error);
+    loadingMsg.textContent = 'An error occurred. Please try again.';
+  }
+
+  // Scroll to the bottom of the messages container
+  messages.scrollTop = messages.scrollHeight;
 }
   </script>
 </head>
