@@ -45,26 +45,81 @@ app.post('/generate-essay', async (req, res) => {
   }
 });
 
-//humanize ai
+// Function to post-process the text
+function postProcessText(text) {
+    // Remove AI-specific phrases
+    const aiPhrases = [
+      "Sure!",
+      "Here is a version of the text",
+      "Let me know if there's anything else I can help you with!",
+    ];
+  
+    let processedText = text;
+    for (const phrase of aiPhrases) {
+      processedText = processedText.replace(phrase, '');
+    }
+  
+    // Trim extra spaces and newlines
+    processedText = processedText.trim();
+  
+    return processedText;
+  }
 
+// Humanize Text Route
 app.post('/humanize', async (req, res) => {
     const { text } = req.body;
   
     try {
-      const response = await cohere.generate({
-        prompt: `Paraphrase the following text to make it sound more human-like: ${text}`,
-        maxTokens: 200, // Adjust as needed
-        temperature: 0.7, // Adjust creativity
+      // Step 1: Paraphrase the text
+      const paraphraseResponse = await cohere.generate({
+        prompt: `Paraphrase the following text in a natural, human-like tone: ${text}`,
+        maxTokens: 300,
+        temperature: 0.8,
       });
+      let humanizedText = paraphraseResponse.generations[0].text;
   
-      const humanizedText = response.generations[0].text;
+      // Step 2: Simplify the text
+      const simplifyResponse = await cohere.generate({
+        prompt: `Simplify the following text for better readability: ${humanizedText}`,
+        maxTokens: 300,
+        temperature: 0.7,
+      });
+      humanizedText = simplifyResponse.generations[0].text;
+  
+      // Step 3: Add variability
+      const variabilityResponse = await cohere.generate({
+        prompt: `Rewrite the following text to make it sound more conversational and less repetitive: ${humanizedText}`,
+        maxTokens: 300,
+        temperature: 0.9,
+      });
+      humanizedText = variabilityResponse.generations[0].text;
+  
+      // Step 4: Post-process the text
+      humanizedText = postProcessText(humanizedText);
+  
       res.json({ humanized: humanizedText });
     } catch (error) {
-      console.error('Error calling Cohere API:', error);
+      console.error('Error humanizing text:', error);
       res.status(500).json({ error: 'Failed to humanize text', details: error.message });
     }
   });
 
+  app.post('/detect-ai', async (req, res) => {
+    const { text } = req.body;
+  
+    try {
+      const response = await axios.post(
+        'https://api.zerogpt.com/detect',
+        { text },
+        { headers: { Authorization: `Bearer 99737fda-09d6-46bd-97b0-bff05452c61c` } }
+      );
+  
+      res.json({ isAI: response.data.isAI, confidence: response.data.confidence });
+    } catch (error) {
+      console.error('Error calling ZeroGPT API:', error);
+      res.status(500).json({ error: 'Failed to detect AI', details: error.message });
+    }
+  });
 
 // Start the server
 app.listen(PORT, () => {
