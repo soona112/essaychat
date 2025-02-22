@@ -17,6 +17,9 @@ const cohere = new CohereClient({
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+app.use(cors({
+  origin: 'https://soona112.github.io/essaychat/', // Replace with your GitHub Pages URL
+}));
 
 // Route to serve the frontend
 app.get('/', (req, res) => {
