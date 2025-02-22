@@ -4,7 +4,11 @@ const { CohereClient } = require('cohere-ai'); // Import CohereClient
 const path = require('path');
 const app = express();
 const PORT = 3000;
-
+require('dotenv').config();
+const COHERE_API_KEY = process.env.COHERE_API_KEY;
+const ZOTERO_API_KEY = process.env.ZOTERO_API_KEY;
+const ZOTERO_USER_ID = process.env.ZOTERO_USER_ID;
+const PORT = process.env.PORT || 3000;
 // Initialize Cohere with your API key
 const cohere = new CohereClient({
   token: '4CF9AFMrAh3vwWesbnqDQWDDEmKqEGMYL6Ne55Fa', // Replace with your Cohere API key
