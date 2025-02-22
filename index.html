@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     * {
       margin: 0;
@@ -108,6 +109,10 @@
       padding: 0 1.5rem;
       display: grid;
       gap: 2rem;
+       display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 20px;
     }
 
     #generator {
@@ -261,9 +266,129 @@
         padding: 1rem;
       }
     }
+    @media (max-width: 768px) {
+  body {
+    font-size: 14px; /* Smaller font size for mobile */
+  }
+
+  .container {
+    padding: 10px; /* Reduce padding for smaller screens */
+  }
+
+  .section {
+    padding: 15px; /* Reduce section padding */
+    border-radius: 8px; /* Slightly smaller border radius */
+  }
+
+  input[type="text"] {
+    padding: 10px; /* Smaller padding for input fields */
+    font-size: 14px; /* Smaller font size for inputs */
+  }
+
+  button {
+    padding: 10px 15px; /* Smaller padding for buttons */
+    font-size: 14px; /* Smaller font size for buttons */
+  }
+
+  .messages {
+    max-height: 200px; /* Limit height of messages container */
+    overflow-y: auto; /* Add scroll for overflow */
+  }
+}
+
+/* Styles for screens smaller than 480px (very small devices) */
+@media (max-width: 480px) {
+  body {
+    font-size: 12px; /* Even smaller font size */
+  }
+
+  .section {
+    padding: 10px; /* Further reduce padding */
+  }
+
+  input[type="text"] {
+    padding: 8px; /* Smaller padding for inputs */
+    font-size: 12px; /* Smaller font size for inputs */
+  }
+
+  button {
+    padding: 8px 12px; /* Smaller padding for buttons */
+    font-size: 12px; /* Smaller font size for buttons */
+  }
+}
+    .navbar {
+  background: var(--card-bg);
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-links a {
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.nav-links a:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.hamburger {
+  display: none;
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    gap: 1rem;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .nav-links.active {
+    display: flex;
+  }
+
+  .hamburger {
+    display: block;
+  }
+}
   </style>
 
   <script>
+    document.getElementById('hamburger').addEventListener('click', () => {
+  const navLinks = document.getElementById('nav-links');
+  navLinks.classList.toggle('active');
+});
   async function generateEssay() {
     const input = document.querySelector('#generator input').value;
     const messages = document.querySelector('#generator .messages');
@@ -481,15 +606,16 @@ async function humanizeText() {
   </header>
 
   <nav class="navbar">
-    <div class="nav-content">
-      <div class="nav-links">
-        <a href="#generator">Generator</a>
-        <a href="#humanizer">Humanizer</a>
-        <a href="#references">References</a>
-        <a href="#grader">Grader</a>
-      </div>
+  <div class="nav-content">
+    <div class="nav-links" id="nav-links">
+      <a href="#generator">Generator</a>
+      <a href="#humanizer">Humanizer</a>
+      <a href="#references">References</a>
+      <a href="#grader">Grader</a>
     </div>
-  </nav>
+    <button class="hamburger" id="hamburger">&#9776;</button>
+  </div>
+</nav>
 
   <div class="container">
     <div class="section" id="generator">
