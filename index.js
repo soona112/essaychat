@@ -1,25 +1,24 @@
-require('dotenv').config();
+require('dotenv').config(); // Load environment variables
 const express = require('express');
 const cors = require('cors');
 const { CohereClient } = require('cohere-ai'); // Import CohereClient
-cohere.init(process.env.COHERE_API_KEY);
+const axios = require('axios'); // Import axios for ZeroGPT API
 const path = require('path');
+
 const app = express();
-const COHERE_API_KEY = process.env.COHERE_API_KEY;
-const ZOTERO_API_KEY = process.env.ZOTERO_API_KEY;
-const ZOTERO_USER_ID = process.env.ZOTERO_USER_ID;
 const PORT = process.env.PORT || 3000;
+
 // Initialize Cohere with your API key
 const cohere = new CohereClient({
   token: process.env.COHERE_API_KEY, // Use environment variable
 });
 
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
+// Middleware
 app.use(cors({
   origin: 'https://soona112.github.io/essaychat/', // Replace with your GitHub Pages URL
 }));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Route to serve the frontend
 app.get('/', (req, res) => {
@@ -54,79 +53,80 @@ app.post('/generate-essay', async (req, res) => {
 
 // Function to post-process the text
 function postProcessText(text) {
-    // Remove AI-specific phrases
-    const aiPhrases = [
-      "Sure!",
-      "Here is a version of the text",
-      "Let me know if there's anything else I can help you with!",
-    ];
-  
-    let processedText = text;
-    for (const phrase of aiPhrases) {
-      processedText = processedText.replace(phrase, '');
-    }
-  
-    // Trim extra spaces and newlines
-    processedText = processedText.trim();
-  
-    return processedText;
+  // Remove AI-specific phrases
+  const aiPhrases = [
+    "Sure!",
+    "Here is a version of the text",
+    "Let me know if there's anything else I can help you with!",
+  ];
+
+  let processedText = text;
+  for (const phrase of aiPhrases) {
+    processedText = processedText.replace(phrase, '');
   }
+
+  // Trim extra spaces and newlines
+  processedText = processedText.trim();
+
+  return processedText;
+}
 
 // Humanize Text Route
 app.post('/humanize', async (req, res) => {
-    const { text } = req.body;
-  
-    try {
-      // Step 1: Paraphrase the text
-      const paraphraseResponse = await cohere.generate({
-        prompt: `Paraphrase the following text in a natural, human-like tone: ${text}`,
-        maxTokens: 300,
-        temperature: 0.8,
-      });
-      let humanizedText = paraphraseResponse.generations[0].text;
-  
-      // Step 2: Simplify the text
-      const simplifyResponse = await cohere.generate({
-        prompt: `Simplify the following text for better readability: ${humanizedText}`,
-        maxTokens: 300,
-        temperature: 0.7,
-      });
-      humanizedText = simplifyResponse.generations[0].text;
-  
-      // Step 3: Add variability
-      const variabilityResponse = await cohere.generate({
-        prompt: `Rewrite the following text to make it sound more conversational and less repetitive: ${humanizedText}`,
-        maxTokens: 300,
-        temperature: 0.9,
-      });
-      humanizedText = variabilityResponse.generations[0].text;
-  
-      // Step 4: Post-process the text
-      humanizedText = postProcessText(humanizedText);
-  
-      res.json({ humanized: humanizedText });
-    } catch (error) {
-      console.error('Error humanizing text:', error);
-      res.status(500).json({ error: 'Failed to humanize text', details: error.message });
-    }
-  });
+  const { text } = req.body;
 
-  app.post('/detect-ai', async (req, res) => {
-    const { text } = req.body;
-  
-    try {
-      const response = await axios.post(
-        'https://api.zerogpt.com/detect',
-        { text },
-        { headers: { Authorization: `Bearer 99737fda-09d6-46bd-97b0-bff05452c61c` } }
-      );
-  
-      res.json({ isAI: response.data.isAI, confidence: response.data.confidence });
-    } catch (error) {
-      console.error('Error calling ZeroGPT API:', error);
-      res.status(500).json({ error: 'Failed to detect AI', details: error.message });
-    }
-  });
+  try {
+    // Step 1: Paraphrase the text
+    const paraphraseResponse = await cohere.generate({
+      prompt: `Paraphrase the following text in a natural, human-like tone: ${text}`,
+      maxTokens: 300,
+      temperature: 0.8,
+    });
+    let humanizedText = paraphraseResponse.generations[0].text;
+
+    // Step 2: Simplify the text
+    const simplifyResponse = await cohere.generate({
+      prompt: `Simplify the following text for better readability: ${humanizedText}`,
+      maxTokens: 300,
+      temperature: 0.7,
+    });
+    humanizedText = simplifyResponse.generations[0].text;
+
+    // Step 3: Add variability
+    const variabilityResponse = await cohere.generate({
+      prompt: `Rewrite the following text to make it sound more conversational and less repetitive: ${humanizedText}`,
+      maxTokens: 300,
+      temperature: 0.9,
+    });
+    humanizedText = variabilityResponse.generations[0].text;
+
+    // Step 4: Post-process the text
+    humanizedText = postProcessText(humanizedText);
+
+    res.json({ humanized: humanizedText });
+  } catch (error) {
+    console.error('Error humanizing text:', error);
+    res.status(500).json({ error: 'Failed to humanize text', details: error.message });
+  }
+});
+
+// AI Detection Route (ZeroGPT API)
+app.post('/detect-ai', async (req, res) => {
+  const { text } = req.body;
+
+  try {
+    const response = await axios.post(
+      'https://api.zerogpt.com/detect',
+      { text },
+      { headers: { Authorization: `Bearer ${process.env.ZEROGPT_API_KEY}` } } // Use environment variable
+    );
+
+    res.json({ isAI: response.data.isAI, confidence: response.data.confidence });
+  } catch (error) {
+    console.error('Error calling ZeroGPT API:', error);
+    res.status(500).json({ error: 'Failed to detect AI', details: error.message });
+  }
+});
 
 // Start the server
 app.listen(PORT, () => {
