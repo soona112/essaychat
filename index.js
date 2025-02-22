@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { CohereClient } = require('cohere-ai'); // Import CohereClient
+cohere.init(process.env.COHERE_API_KEY);
 const path = require('path');
 const app = express();
 require('dotenv').config();
