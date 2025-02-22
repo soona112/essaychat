@@ -10,7 +10,7 @@ const ZOTERO_USER_ID = process.env.ZOTERO_USER_ID;
 const PORT = process.env.PORT || 3000;
 // Initialize Cohere with your API key
 const cohere = new CohereClient({
-  token: '4CF9AFMrAh3vwWesbnqDQWDDEmKqEGMYL6Ne55Fa', // Replace with your Cohere API key
+  token: process.env.COHERE_API_KEY, // Use environment variable
 });
 
 app.use(cors());
