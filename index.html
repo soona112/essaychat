@@ -304,9 +304,66 @@
     messages.scrollTop = messages.scrollHeight;
   }
 
-  //ai humanize 
-  async function humanizeText() {
+  let generatedEssay = ''; // Store the generated essay
+
+// Function to generate an essay
+async function generateEssay() {
+  const input = document.querySelector('#generator input').value;
+  const messages = document.querySelector('#generator .messages');
+
+  if (!input.trim()) {
+    alert('Please enter a topic!');
+    return;
+  }
+
+  // Add user message to the UI
+  const userMsg = document.createElement('div');
+  userMsg.className = 'message user';
+  userMsg.textContent = input;
+  messages.appendChild(userMsg);
+
+  // Clear the input field
+  document.querySelector('#generator input').value = '';
+
+  // Add a loading message
+  const loadingMsg = document.createElement('div');
+  loadingMsg.className = 'message bot typing';
+  loadingMsg.textContent = 'Generating essay...';
+  messages.appendChild(loadingMsg);
+
+  try {
+    // Send request to the backend
+    const response = await fetch('http://localhost:3000/generate-essay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: input }),
+    });
+
+    const data = await response.json();
+
+    // Store the generated essay
+    generatedEssay = data.essay;
+
+    // Replace loading message with the generated essay
+    loadingMsg.className = 'message bot';
+    loadingMsg.textContent = generatedEssay || 'Failed to generate essay.';
+  } catch (error) {
+    console.error('Error:', error);
+    loadingMsg.textContent = 'An error occurred. Please try again.';
+  }
+
+  // Scroll to the bottom of the messages container
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// Function to humanize text
+async function humanizeText() {
   const messages = document.querySelector('#humanizer .messages');
+
+  if (!generatedEssay) {
+    alert('Please generate an essay first!');
+    return;
+  }
 
   // Add a loading message
   const loadingMsg = document.createElement('div');
@@ -319,7 +376,7 @@
     const response = await fetch('http://localhost:3000/humanize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: 'Sample text to humanize' }), // Replace with actual text
+      body: JSON.stringify({ text: generatedEssay }),
     });
 
     const data = await response.json();
@@ -389,6 +446,30 @@
 
     messages.scrollTop = messages.scrollHeight;
   }
+
+  async function checkAIDetection() {
+  const messages = document.querySelector('#humanizer .messages');
+  const humanizedText = messages.querySelector('.bot:last-child').textContent;
+
+  try {
+    const response = await fetch('http://localhost:3000/detect-ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: humanizedText }),
+    });
+
+    const data = await response.json();
+
+    if (data.isAI) {
+      alert(`This text is likely AI-generated (confidence: ${data.confidence}%).`);
+    } else {
+      alert('This text passes AI detection!');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('An error occurred while checking AI detection.');
+  }
+}
   </script>
 </head>
 <body>
@@ -423,6 +504,7 @@
         <h3>AI Text Humanizer</h3>
         <div class="messages"></div>
         <button onclick="humanizeText()">Humanize Text</button>
+        <button onclick="checkAIDetection()">Check AI Detection</button>
       </div>
       
       <div class="section" id="references">
